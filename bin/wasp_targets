@@ -303,7 +303,7 @@ for name in cosmos.iterkeys():
 
 fid.write('#NGC4966\n')
 ra_hex, dec_hex = convert_to_hex(NGC5466.ra.hourangle),convert_to_hex(NGC5466.dec.deg,force_sign=True)
-fid.write('%s %s %s\n'%('NGC4966',ra_hex,dex_hex))
+fid.write('%s %s %s\n'%('NGC4966',ra_hex,dec_hex))
 fid.close()
 
 # Create ObservingBlocks for each filter and target with our time
