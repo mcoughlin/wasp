@@ -89,6 +89,43 @@ def ps1_query(ra_deg, dec_deg, rad_deg, maxmag=20,
                                width=("%fd" % rad_deg),
                                catalog="II/349/ps1")[0]
 
+
+def convert_to_hex(val, delimiter=':', force_sign=False):
+    """
+    Converts a numerical value into a hexidecimal string
+
+    Parameters:
+    ===========
+    - val:           float
+                     The decimal number to convert to hex.
+
+    - delimiter:     string
+                     The delimiter between hours, minutes, and seconds
+                     in the output hex string.
+
+    - force_sign:    boolean
+                     Include the sign of the string on the output,
+                     even if positive? Usually, you will set this to
+                     False for RA values and True for DEC
+
+    Returns:
+    ========
+    A hexadecimal representation of the input value.
+    """
+    s = np.sign(val)
+    s_factor = 1 if s > 0 else -1
+    val = np.abs(val)
+    degree = int(val)
+    minute = int((val  - degree)*60)
+    second = (val - degree - minute/60.0)*3600.
+    if degree == 0 and s_factor < 0:
+        return '-00{2:s}{0:02d}{2:s}{1:.2f}'.format(minute, second, delimiter)
+    elif force_sign or s_factor < 0:
+        deg_str = '{:+03d}'.format(degree * s_factor)
+    else:
+        deg_str = '{:02d}'.format(degree * s_factor)
+    return '{0:s}{3:s}{1:02d}{3:s}{2:.2f}'.format(deg_str, minute, second, delimiter)
+
 # Parse command line
 opts = parse_commandline()
 
@@ -255,15 +292,18 @@ fid = open(filename,'w')
 fid.write('#Standards\n')
 for name in data.iterkeys():
     if not "RA" in data[name]: continue
-    fid.write('%s %.5f %.5f %.5f %5f\n'%(name,data[name]["RA"],data[name]["Declination"],data[name]["vmag"],data[name]["bminusv"]))    
+    ra_hex, dec_hex = convert_to_hex(data[name]["Coord"].ra.hourangle), convert_to_hex(data[name]["Coord"].dec.deg,force_sign=True)
+    fid.write('%s; %s; %s; %.5f; %5f\n'%(name,ra_hex, dec_hex,data[name]["vmag"],data[name]["bminusv"]))    
 
 fid.write('#COSMOS\n')
 
 for name in cosmos.iterkeys():
-    fid.write('%s %.5f %.5f\n'%(name,cosmos[name]["RA"],cosmos[name]["Declination"]))
+    ra_hex, dec_hex = convert_to_hex(cosmos[name]["Coord"].ra.hourangle), convert_to_hex(cosmos[name]["Coord"].dec.deg,force_sign=True)
+    fid.write('%s; %s; %s\n'%(name,ra_hex, dec_hex))
 
 fid.write('#NGC4966\n')
-fid.write('%s %.5f %.5f\n'%('NGC4966',NGC5466.ra.deg,NGC5466.dec.deg))
+ra_hex, dec_hex = convert_to_hex(NGC5466.ra.hourangle),convert_to_hex(NGC5466.dec.deg,force_sign=True)
+fid.write('%s %s %s\n'%('NGC4966',ra_hex,dex_hex))
 fid.close()
 
 # Create ObservingBlocks for each filter and target with our time
