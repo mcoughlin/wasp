@@ -1,0 +1,60 @@
+NUMBER   
+FLAGS    
+X_WORLD
+Y_WORLD
+
+MAG_APER(1)     
+MAG_APER(2)
+MAG_APER(3)
+MAG_APER(4)
+MAG_APER(5)
+MAGERR_APER(1) 
+MAGERR_APER(2) 
+MAGERR_APER(3) 
+MAGERR_APER(4) 
+MAGERR_APER(5) 
+MAG_PETRO
+MAGERR_PETRO
+MAG_AUTO
+MAGERR_AUTO
+BACKGROUND
+THRESHOLD        
+
+FWHM_IMAGE
+PETRO_RADIUS
+KRON_RADIUS
+     
+CLASS_STAR
+
+X_IMAGE
+Y_IMAGE
+THETA_IMAGE
+
+A_IMAGE
+ERRA_IMAGE
+B_IMAGE
+ERRB_IMAGE
+A_WORLD
+ERRA_WORLD
+B_WORLD
+ERRB_WORLD
+
+FLUX_PETRO
+FLUXERR_PETRO
+
+XPSF_IMAGE		 X coordinate from PSF-fitting  			   [pixel]
+YPSF_IMAGE		 Y coordinate from PSF-fitting  			   [pixel]
+XPSF_WORLD		 PSF position along world x axis			   [deg]
+YPSF_WORLD		 PSF position along world y axis			   [deg]
+ALPHAPSF_SKY		 Right ascension of the fitted PSF (native)		   [deg]
+DELTAPSF_SKY		 Declination of the fitted PSF (native) 		   [deg]
+ALPHAPSF_J2000  	 Right ascension of the fitted PSF (J2000)		   [deg]
+DELTAPSF_J2000  	 Declination of the fitted PSF (J2000)  		   [deg]
+ALPHAPSF_B1950  	 Right ascension of the fitted PSF (B1950)		   [deg]
+DELTAPSF_B1950  	 Declination of the fitted PSF (B1950)  		   [deg]
+FLUX_PSF		 Flux from PSF-fitting  				   [count]
+FLUXERR_PSF		 RMS flux error for PSF-fitting 			   [count]
+MAG_PSF 		 Magnitude from PSF-fitting				   [mag]
+MAGERR_PSF		 RMS magnitude error from PSF-fitting			   [mag]
+NITER_PSF		 Number of iterations for PSF-fitting			  
+CHI2_PSF		 Reduced chi2 from PSF-fitting  			  

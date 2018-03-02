@@ -1,0 +1,24 @@
+
+import os, sys, glob
+import numpy as np
+fitsfiles = glob.glob('../../data/HZ2_throughPutTest*.fits')
+
+combinedDir = "../output/combined"
+if not os.path.isdir(combinedDir):
+    os.makedirs(combinedDir)
+filename = "../output/%s/star.dat"%combinedDir
+fid = open(filename,'w')
+for fitsfile in fitsfiles:
+    if "background" in fitsfile: continue
+
+    fitsfileSplit = fitsfile.split("/")[-1].replace(".fits","") 
+    filename = "../output/%s/star.dat"%fitsfileSplit
+  
+    if not os.path.isfile(filename):
+        system_command = "python wasp_catalog --doOverwrite --doPlots -s %s --f %s"%('HZ2',fitsfile)
+        os.system(system_command)
+
+    data_out = np.loadtxt(filename)
+    fid.write('%s %.5f %.5f %.5f %.5f %.5f %.5f %.5f %.5f %.5f\n'%(fitsfileSplit,data_out[0],data_out[1],data_out[2],data_out[3],data_out[4],data_out[5],data_out[6],data_out[7],data_out[8]))
+fid.close()
+
