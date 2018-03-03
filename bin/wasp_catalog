@@ -22,6 +22,9 @@ from lxml.html import fromstring
 import ztfsub.utils, ztfsub.surveys
 import ztfsub.plotting
 
+import scipy
+from scipy.optimize import curve_fit
+
 def parse_commandline():
     """
     Parse the options given on the command-line.
@@ -35,6 +38,7 @@ def parse_commandline():
     parser.add_option("-d","--defaultsDir",default="../defaults")
     parser.add_option("-f","--fitsfile",default="../../data/HZ2_throughPutTest1.fits")
     parser.add_option("-s","--star",default="HZ2")    
+    parser.add_option("-m","--minmag",default=-10,type=float)
 
     parser.add_option("--doPlots",  action="store_true", default=False)
     parser.add_option("--doAstrometryNet",  action="store_true", default=False)
@@ -77,6 +81,7 @@ outputDir = opts.outputDir
 defaultsDir = opts.defaultsDir
 dataDir = opts.dataDir
 fitsfile = opts.fitsfile
+minmag = opts.minmag
 
 rm_command = "rm *.fits"
 os.system(rm_command)
@@ -107,9 +112,9 @@ if not os.path.isfile(scienceimage):
     cp_command = "cp %s %s"%(outfile,scienceimage)
     os.system(cp_command)
 
-hdulist=fits.open(scienceimage)
+ra, dec = ztfsub.utils.get_radec_from_wcs(scienceimage)
 if opts.doAstrometryNet:
-    ztfsub.utils.astrometrynet(scienceimage)
+    ztfsub.utils.astrometrynet(scienceimage,ra=ra,dec=dec)
 
 ztfsub.utils.sextractor(scienceimage,defaultsDir,doSubtractBackground=opts.doSubtractBackground)
 catfile = scienceimage.replace(".fits",".cat")
@@ -118,7 +123,6 @@ xs, ys, mags, magerrs, ras, decs, fwhms = cat[:,0], cat[:,1], cat[:,2], cat[:,3]
 fwhmmax = 5e-3
 xmin = 0
 xmax = 10000
-minmag = -12.0
 idx = np.where((fwhms <= fwhmmax) & (xs >= xmin) & (xs <= xmax) & (mags <= minmag))[0]
 cat = cat[idx,:]
 np.savetxt(catfile,cat,fmt='%.5f')
@@ -135,6 +139,16 @@ coo_wasp = SkyCoord(tbl['RA']*u.deg, tbl['Declination']*u.deg)
 coo_ps1 = SkyCoord(result['RAJ2000'], result['DEJ2000'])
 idx_ps1, d2d_ps1, d3d_ps1 = coo_wasp.match_to_catalog_sky(coo_ps1)
 
+
+def linear_fit(x):
+    return m * x + b
+xdata, ydata, yerr = np.array(result[idx_ps1]["gmag"]), np.array(tbl["mag"]), np.array(tbl["magerr"])
+#y_fit = linear_fit(xdata, 1, 2)
+#popt, pcov = curve_fit(linear_fit, xdata, ydata, sigma=yerr, p0=[1.0,-50.0], bounds=([-100.0,-100.0],[100.0, 100.0]))
+
+z = np.polyfit(xdata, ydata, 1)
+p = np.poly1d(z)
+
 if opts.doPlots:
     plotName = os.path.join(path_out_dir,'match.pdf')
     plt.hist(d2d_ps1.arcsec, histtype='step', range=(0,100))
@@ -145,8 +159,14 @@ if opts.doPlots:
 
     plotName = os.path.join(path_out_dir,'colors.pdf')
     plt.errorbar(result[idx_ps1]["gmag"],tbl["mag"],tbl["magerr"],fmt='ko')
-    plt.xlabel('PS1 [mag]')
+    plt.plot(result[idx_ps1]["gmag"],p(result[idx_ps1]["gmag"]),'r--')
+    plt.xlabel('PS1 (g) [mag]')
     plt.ylabel('WASP [mag]')
+    plt.xlim([12,20])
+    plt.ylim([-18,-8])
+
+    plt.gca().invert_xaxis()
+    plt.gca().invert_yaxis()
     plt.savefig(plotName)
     plt.close()
 
@@ -158,9 +178,11 @@ if opts.doPlots:
 coo_star = SkyCoord(ra_star*u.deg, dec_star*u.deg)
 idx_wasp, d2d_wasp, d3d_wasp = coo_star.match_to_catalog_sky(coo_wasp)
 
-
 filename = os.path.join(path_out_dir,'star.dat')
 fid = open(filename,'w')
 fid.write('%.5f %.5f %.5f %.5f %.5f %.5f %.5f %.5f %.5f\n'%(tbl[idx_wasp]["X"],tbl[idx_wasp]["Y"],tbl[idx_wasp]["RA"],tbl[idx_wasp]["Declination"],tbl[idx_wasp]["mag"],tbl[idx_wasp]["magerr"],result[idx_ps1[idx_wasp]]["RAJ2000"],result[idx_ps1[idx_wasp]]["DEJ2000"],result[idx_ps1[idx_wasp]]["gmag"]))
 fid.close()
+
+rm_command = "rm %s/*.fits"%path_out_dir
+os.system(rm_command)
 

@@ -1,21 +1,52 @@
 
 import os, sys, glob
 import numpy as np
-fitsfiles = glob.glob('../../data/HZ2_throughPutTest*.fits')
 
 combinedDir = "../output/combined"
 if not os.path.isdir(combinedDir):
     os.makedirs(combinedDir)
-filename = "../output/%s/star.dat"%combinedDir
+
+fitsfiles = glob.glob('../../data/HZ2_throughPut*.fits')
+filename = "../output/%s/HZ2.dat"%combinedDir
+
 fid = open(filename,'w')
 for fitsfile in fitsfiles:
     if "background" in fitsfile: continue
 
     fitsfileSplit = fitsfile.split("/")[-1].replace(".fits","") 
     filename = "../output/%s/star.dat"%fitsfileSplit
+ 
+    if "guide" in fitsfileSplit:
+        minmag = 0
+    else:
+        minmag = -12
+ 
+    if not os.path.isfile(filename):
+        system_command = "python wasp_catalog --doAstrometryNet --doSubtractBackground --doOverwrite --doPlots -s %s --f %s -m %.5f"%('HZ2',fitsfile,minmag)
+        os.system(system_command)
+
+    data_out = np.loadtxt(filename)
+    fid.write('%s %.5f %.5f %.5f %.5f %.5f %.5f %.5f %.5f %.5f\n'%(fitsfileSplit,data_out[0],data_out[1],data_out[2],data_out[3],data_out[4],data_out[5],data_out[6],data_out[7],data_out[8]))
+fid.close()
+
+fitsfiles = glob.glob('../../data/LB227_u*.fits')
+filename = "../output/%s/LB227.dat"%combinedDir
+
+fid = open(filename,'w')
+for fitsfile in fitsfiles:
+    if "background" in fitsfile: continue
+    
+    fitsfileSplit = fitsfile.split("/")[-1].replace(".fits","")
+    filename = "../output/%s/star.dat"%fitsfileSplit
+
+    if "guide" in fitsfileSplit:
+        minmag = 0
+    else:
+        minmag = -10
   
     if not os.path.isfile(filename):
-        system_command = "python wasp_catalog --doOverwrite --doPlots -s %s --f %s"%('HZ2',fitsfile)
+        system_command = "python wasp_catalog --doAstrometryNet --doSubtractBackground --doOverwrite --doPlots -s %s --f %s -m %.5f"%('LB227',fitsfile,minmag)
+        print system_command
         os.system(system_command)
 
     data_out = np.loadtxt(filename)
